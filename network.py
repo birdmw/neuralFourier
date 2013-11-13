@@ -1,4 +1,4 @@
-import random, math
+import random, math, numpy
 
 '''=======================
   Class network:
@@ -19,7 +19,8 @@ import random, math
 =========================='''
 
 class network:
-    def  __init__(self, inputLayer, hiddenLayer, outputLayer):
+    def  __init__(self, inputLayer, hiddenLayer, outputLayer, maxTaylorOrder):
+        self.factorialList = list()
         self.inputLayer = list()
         self.hiddenLayer = list()
         self.outputLayer = list()
@@ -27,13 +28,16 @@ class network:
         self.hiddenToHiddenSynapses = list()
         self.hiddenToOutputSynapses = list()
         self.output = list()
+        self.neuronsToFire = list()
         self.error = 10**10
+        self.maxTaylorOrder = maxTaylorOrder
+        self.factorialList = self.makeFactorialList(self.maxTaylorOrder+1)
         for iL in range(inputLayer):  ## build input neurons
-            self.inputLayer.append(self.neuron())
+            self.inputLayer.append(self.neuron(self.maxTaylorOrder))
         for hL in range(hiddenLayer): ## build hidden neurons
-            self.hiddenLayer.append(self.neuron())
+            self.hiddenLayer.append(self.neuron(self.maxTaylorOrder))
         for oL in range(outputLayer): ## build output neurons
-            self.outputLayer.append(self.neuron())
+            self.outputLayer.append(self.neuron(self.maxTaylorOrder))
         for iL in self.inputLayer:
             for hL in self.hiddenLayer:  ## build input synapses
                 self.inputToHiddenSynapses.append(self.synapse(iL,hL))
@@ -86,21 +90,42 @@ class network:
             s.mutate(mu)
         for s in self.hiddenToOutputSynapses:
             s.mutate(mu)
-
+            
+    def makeFactorialList(self, length):
+        factorialList = list()
+        for i in range(length):
+            factorialList.append(math.factorial(i))
+        return factorialList
+    
     class neuron:
-        def __init__(self):
-            self.threshold,self.inbox,self.charge,self.synapseList = 0,0,0,list()
+        def __init__(self,maxTaylorOrder): #n and x are for Taylor terms
+            self.n,self.x,self.threshold,self.inbox,self.charge,self.synapseList,self.neuronHistory = 0,0,0,0,0,list(),list()
+            self.maxTaylorOrder=maxTaylorOrder
+            self.taylorOrder=0
         def testCharge(self):
             if abs(self.charge) >= abs(self.threshold):
                 return True
             else:
                 return False
         def reuptake(self):##add to ready to fire queue
-            self.charge += self.inbox
+            while (len(self.neuronHistory)<(self.taylorOrder+1)):
+                self.neuronHistory.append(self.inbox)
+            while (len(self.neuronHistory)>(self.taylorOrder+1)):
+                self.neuronHistory.remove(0)
+            nthD=nthDerivative(self.neuronHistory, self.taylorOrder)
+            #self.charge += self.inbox # turn into Taylor Term of 3rd or less order, use nthDerivative function
+            self.charge += nthD / math.factorial(len(self.taylorOrder)) * (self.x - self.inbox)**self.taylorOrder
             self.inbox = 0
+        def clamp(n, minn, maxn):
+            return max(min(maxn, n), minn)
+        def nthDerivative(array,derivative):
+            x = numpy.diff(numpy.array(array),n=derivative)
+            return x.tolist()[0]
         def mutate(self, mu):
+            self.n = self.clamp(int(random.gauss(self.taylorOrder,mu),0,self.maxTaylorOrder))
+            self.x = random.gauss(self.x,mu)
             self.threshold = random.gauss(self.threshold,mu)
-
+            
     class synapse:
         def __init__(self,neuron1,neuron2):
             self.a,self.b,self.c,self.neuron1,self.neuron2 = 0,0,0,neuron1,neuron2

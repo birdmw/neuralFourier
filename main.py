@@ -1,4 +1,4 @@
-## recurrent Fourier synapse based neural network
+## recurrent sigmoid synapse based neural network
 ## fed through genetic algorithm with PID controlled mutation 
 ## breeding is based on success of creatures
 
@@ -6,16 +6,21 @@
 import matplotlib.pyplot as plt
 import geneticAlgorithm as ga
 import time,math,pid
+from multiprocessing import Pool
+from functools import partial
 
 ## CONSTANTS
-epochs         = 150
+epochs         = 200
 noOfCreatures  = 40
 feedbackCycles = 4
-hiddenNeurons  = 10
+hiddenNeurons  = 15
 inputNeurons   = 10
 outputNeurons  = 10
 rangeOfInputs  = 10
-p              = pid.PID(.005,.000,.005)
+Kp = .004
+Kd = .004
+Ki = .002
+p              = pid.PID(Kp,Ki,Kd)
 
 ## INITITAL VALUES
 mu             = 0
@@ -34,7 +39,7 @@ def makeTargets(inputs):
 def initialize():
     inputs = ga.generateInputs( inputNeurons , rangeOfInputs )
     targets = makeTargets( inputs )
-    population = ga.populate( noOfCreatures, inputNeurons, hiddenNeurons, outputNeurons )
+    population = ga.populate( noOfCreatures, inputNeurons, hiddenNeurons, outputNeurons, maxTaylorOrder )
     best = ga.findBestCreature( population )
     best.error = 2.0
     plt.ion()
@@ -51,9 +56,12 @@ def displayProgress(epoch, mu, best):
     print "mu:", round(mu,6),"error:",round(best.error,6), "epoch:",epoch
     return time.time()
 
-def evolveToSolution(epochs, population, mu):
+def evolveToSolution(epochs, population, mu, noOfCreatures):
     lastTime = 0
     for j in range(epochs):
+        p.Kp = Kp * (1.0-(float(j)/float(epochs)))
+        p.Kd = Kd * (1.0-(float(j)/float(epochs)))
+        p.Ki = Ki * (1.0-(float(j)/float(epochs)))
         population = ga.evolve( population, mu, inputs, targets, feedbackCycles, noOfCreatures, inputNeurons, hiddenNeurons, outputNeurons)
         best = ga.findBestCreature( population )
         mu = abs(p.update(best.error))
@@ -76,6 +84,7 @@ def printFinalSolution(best):
     plt.legend(('Target','Approximation'))
     plt.show()
 
-population, inputs, targets, best = initialize()
-evolveToSolution(epochs, population, mu)
-printFinalSolution(ga.findBestCreature( population ))
+if __name__ == '__main__':
+    population, inputs, targets, best = initialize()
+    evolveToSolution(epochs, population, mu, noOfCreatures)
+    printFinalSolution(ga.findBestCreature( population ))

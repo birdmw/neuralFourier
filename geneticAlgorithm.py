@@ -4,10 +4,10 @@ import network
 from operator import attrgetter
 import copy
     
-def populate( noOfCreatures, inputLayerCount, hiddenLayerCount, outputLayerCount ):
+def populate( noOfCreatures, inputLayerCount, hiddenLayerCount, outputLayerCount, maxTaylorOrder ):
     population = list()
     for i in range( noOfCreatures ) :
-        population.append( network.network(inputLayerCount, hiddenLayerCount, outputLayerCount) )
+        population.append( network.network(inputLayerCount, hiddenLayerCount, outputLayerCount, maxTaylorOrder) )
     return population
 
 def train( population, inputs, targets, itterationsPerRun ):
