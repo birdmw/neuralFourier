@@ -60,16 +60,16 @@ def weighted_choice(population):
     r = random.uniform(0,total)
     upto = 0
     for c, w in choices:
-       if upto + w > r:
-          return c
-       upto += w
+        if upto + w > r:
+            return c
+        upto += w
     #it should not make it here
     choice = random.choice(population)
-    print "choice of:",choice,"with input layer:",choice.inputLayer
+    #print "choice of:",choice,"with input layer:",choice.inputLayer
     return choice
 
 def mate(mother, father, inp, hid, outp):
-    offspring = network.network(inp,hid,outp,0)
+    offspring = network.network(inp,hid,outp,random.choice([mother.maxTaylorOrder, father.maxTaylorOrder]))
 
     for i in range (inp):
         offspring.inputLayer[i].threshold = random.choice ([mother.inputLayer[i].threshold, father.inputLayer[i].threshold])
@@ -127,6 +127,5 @@ def findBestCreature(population):
     return best
 
 def generateInputs( numberOfInputs, rangeOfXaxis ) :
-    inputs = list()
     inputs = np.arange(0,rangeOfXaxis,float(rangeOfXaxis)/float(numberOfInputs))
     return inputs

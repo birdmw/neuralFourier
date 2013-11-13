@@ -49,7 +49,7 @@ class network:
             for oL in self.outputLayer:  ## build output synapses
                 self.hiddenToOutputSynapses.append(self.synapse(hL1,oL))
                 hL.synapseList.append(self.hiddenToOutputSynapses[-1])
-                
+
     def stepLayer(self, layer):
         for n in layer: #for each neuron in the input layer
             if n.testCharge():
@@ -58,7 +58,7 @@ class network:
                 n.charge = 0
             n.reuptake()
         return layer
-    
+
     def step(self,inputList):
         for i in range(len(inputList)): ## set input layer to inputList
             self.inputLayer[i].inbox = inputList[i]
@@ -70,12 +70,12 @@ class network:
     def run(self,inputList,itterations):
         for i in range(itterations):
             self.step(inputList)
-            
+
     def setOutput(self):
         self.output = list()
         for n in self.outputLayer:
             self.output.append(n.charge)
-            
+
     def mutate(self,mu):
         for n in self.inputLayer:
             n.mutate(mu)
@@ -89,7 +89,7 @@ class network:
             s.mutate(mu)
         for s in self.hiddenToOutputSynapses:
             s.mutate(mu)
-                
+
     class neuron:
         def __init__(self,maxTaylorOrder): #n and x are for Taylor terms
             self.n,self.x,self.threshold,self.inbox,self.charge,self.synapseList,self.neuronHistory = 0,0,0,0,0,list(),list()
@@ -102,14 +102,18 @@ class network:
             else:
                 return False
         def reuptake(self):##add to ready to fire queue
+
             while (len(self.neuronHistory)<(self.n+1)):
                 self.neuronHistory.append(self.inbox)
             while (len(self.neuronHistory)>(self.n+1)):
                 self.neuronHistory.pop(0)
             nthD = self.nthDerivative(self.neuronHistory, self.n)
-            #self.charge += self.inbox # turn into Taylor Term of 3rd or less order, use nthDerivative function
-            self.charge += (nthD / self.factorialList[self.n]) * ( (self.x - self.inbox)**self.n )
+            self.charge += self.inbox # turn into Taylor Term of 3rd or less order, use nthDerivative function
+            #taylorElement = (nthD / self.factorialList[self.n]) * ( (self.x - self.inbox)**self.n )
+            #print "TE:",taylorElement
+            #self.charge += taylorElement
             self.inbox = 0
+
         def clamp(self, n, minn, maxn):
             return max(min(maxn, n), minn)
         def nthDerivative(self, array , derivative):
@@ -124,7 +128,7 @@ class network:
             for i in range(length):
                 factorialList.append(float(math.factorial(i)))
             return factorialList
-            
+
     class synapse:
         def __init__(self,neuron1,neuron2):
             self.a,self.b,self.c,self.neuron1,self.neuron2 = 0,0,0,neuron1,neuron2

@@ -71,7 +71,6 @@ def evolveToSolution(epochs, population, mu, noOfCreatures):
             lastTime = displayProgress(j, mu, best)
 
 def printFinalSolution(best):
-    newlist = list()
     print "===================================="
     print "The best approximation"
     print "has an error of:" , best.error
