@@ -3,7 +3,7 @@ import random
 import network
 from operator import attrgetter
 import copy
-    
+
 def populate( noOfCreatures, inputLayerCount, hiddenLayerCount, outputLayerCount, maxTaylorOrder ):
     population = list()
     for i in range( noOfCreatures ) :
@@ -35,10 +35,10 @@ def printErrors(population):
         print c.error
 
 def repopulateToMax(population, noOfCreatures, inp, hid, outp):
-    while ( len( population ) < noOfCreatures ):
+    while ( len( population ) <= noOfCreatures ):
         try:
-            mother = weighted_choice(population)
-            father = weighted_choice(population)
+            mother = weighted_choice ( population )
+            father = weighted_choice ( population )
             #mother = random.choice ( population )
             #father = random.choice ( population )
         except UnboundLocalError:
@@ -51,11 +51,10 @@ def weighted_choice(population):
     choices = list()
     highestError=0
     for c in population:
-        if not (c.error==10**10):
+        if (c.error<=10**10):
             highestError = max(c.error,highestError)
-        #print highestError
     for c in population:
-        if not(c.error == 10**10):
+        if (c.error<=10**10):
             choices.append([c,highestError-c.error])
     total = sum(w for c, w in choices)
     r = random.uniform(0,total)
@@ -64,17 +63,26 @@ def weighted_choice(population):
        if upto + w > r:
           return c
        upto += w
-    assert False, "Shouldn't get here"
+    #it should not make it here
+    choice = random.choice(population)
+    print "choice of:",choice,"with input layer:",choice.inputLayer
+    return choice
 
 def mate(mother, father, inp, hid, outp):
-    offspring = network.network(inp,hid,outp)
+    offspring = network.network(inp,hid,outp,0)
 
     for i in range (inp):
         offspring.inputLayer[i].threshold = random.choice ([mother.inputLayer[i].threshold, father.inputLayer[i].threshold])
+        offspring.inputLayer[i].x = random.choice ([mother.inputLayer[i].x, father.inputLayer[i].x])
+        offspring.inputLayer[i].n = random.choice ([mother.inputLayer[i].n, father.inputLayer[i].n])
     for i in range (hid):
         offspring.hiddenLayer[i].threshold = random.choice ([mother.hiddenLayer[i].threshold, father.hiddenLayer[i].threshold])
+        offspring.hiddenLayer[i].x = random.choice ([mother.hiddenLayer[i].x, father.hiddenLayer[i].x])
+        offspring.hiddenLayer[i].n = random.choice ([mother.hiddenLayer[i].n, father.hiddenLayer[i].n])
     for i in range (outp):
         offspring.outputLayer[i].threshold = random.choice ([mother.outputLayer[i].threshold, father.outputLayer[i].threshold])
+        offspring.outputLayer[i].x = random.choice ([mother.outputLayer[i].x, father.outputLayer[i].x])
+        offspring.outputLayer[i].n = random.choice ([mother.outputLayer[i].n, father.outputLayer[i].n])
 
     for i in range (len(offspring.inputToHiddenSynapses)):
         offspring.inputToHiddenSynapses[i].a = random.choice([mother.inputToHiddenSynapses[i].a, father.inputToHiddenSynapses[i].a])

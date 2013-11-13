@@ -1,5 +1,5 @@
 ## recurrent sigmoid synapse based neural network
-## fed through genetic algorithm with PID controlled mutation 
+## fed through genetic algorithm with PID controlled mutation
 ## breeding is based on success of creatures
 
 ## IMPORTS
@@ -10,16 +10,17 @@ from multiprocessing import Pool
 from functools import partial
 
 ## CONSTANTS
-epochs         = 200
+epochs         = 50
 noOfCreatures  = 40
-feedbackCycles = 4
+feedbackCycles = 5
 hiddenNeurons  = 15
 inputNeurons   = 10
 outputNeurons  = 10
 rangeOfInputs  = 10
-Kp = .004
-Kd = .004
-Ki = .002
+maxTaylorOrder = 3
+Kp             = 10
+Kd             = 10
+Ki             = 10
 p              = pid.PID(Kp,Ki,Kd)
 
 ## INITITAL VALUES
@@ -36,7 +37,7 @@ def makeTargets(inputs):
         targets.append(j)
     return targets
 
-def initialize():
+def initialize(maxTaylorOrder):
     inputs = ga.generateInputs( inputNeurons , rangeOfInputs )
     targets = makeTargets( inputs )
     population = ga.populate( noOfCreatures, inputNeurons, hiddenNeurons, outputNeurons, maxTaylorOrder )
@@ -65,7 +66,7 @@ def evolveToSolution(epochs, population, mu, noOfCreatures):
         population = ga.evolve( population, mu, inputs, targets, feedbackCycles, noOfCreatures, inputNeurons, hiddenNeurons, outputNeurons)
         best = ga.findBestCreature( population )
         mu = abs(p.update(best.error))
-        
+
         if (time.time() > lastTime +  .5):
             lastTime = displayProgress(j, mu, best)
 
@@ -85,6 +86,6 @@ def printFinalSolution(best):
     plt.show()
 
 if __name__ == '__main__':
-    population, inputs, targets, best = initialize()
+    population, inputs, targets, best = initialize(maxTaylorOrder)
     evolveToSolution(epochs, population, mu, noOfCreatures)
     printFinalSolution(ga.findBestCreature( population ))
